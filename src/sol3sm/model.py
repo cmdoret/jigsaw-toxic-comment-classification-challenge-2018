@@ -33,7 +33,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 
 batch_size = 32
 # Used epochs=100 with early exiting for best score.
-epochs = 100
+epochs = 1
 # Change to 10
 num_folds = 3  # number of folds
 
@@ -46,6 +46,17 @@ X_train_seq = load_np("X_train")
 X_test_seq = load_np("X_test")
 y_train = load_np("y_train")
 
+# Extract test set
+(
+    X_train_seq,
+    X_test,
+    features,
+    features_test,
+    y_train,
+    y_test,
+) = train_test_split(
+    X_train_seq, features, y_train, test_size=0.10, random_state=42
+)
 ### 6. Model definition ####
 
 
@@ -137,17 +148,6 @@ class RocAucEvaluation(Callback):
 model = get_model(features)
 
 
-# Extract test set
-(
-    X_train_seq,
-    X_test,
-    features,
-    features_test,
-    y_train,
-    y_test,
-) = train_test_split(
-    X_train_seq, features, y_train, test_size=0.10, random_state=42
-)
 predict = np.zeros((X_test_seq.shape[0], 6))
 # Uncomment for out-of-fold predictions
 # scores = []
