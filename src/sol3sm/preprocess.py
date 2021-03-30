@@ -109,7 +109,7 @@ spell_model = gensim.models.KeyedVectors.load_word2vec_format(
     EMBEDDING_FILE_FASTTEXT
 )
 # Words are sorted from most frequent to least frequent
-words = spell_model.index2word
+words = spell_model.index_to_key
 
 print("Embeddings loaded")
 

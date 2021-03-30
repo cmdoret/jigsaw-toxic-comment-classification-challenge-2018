@@ -8,10 +8,17 @@ def edit_correct(
 ) -> Optional[str]:
     """Fix spelling mistakes in input word by
     computing the levenstein distance to a list of valid words
-    sorted by decreasing priority. The most frequent word within
+    sorted by decreasing priority. The highest priority word within
     maximum edit distance is returned.
+
+    Examples
+    --------
+    >>> edit_correct("kug", ["mug", "bug", "but"])
+    'mug'
+    >>> edit_correct("bug", ["mug", "bug", "but"])
+    'bug'
+    >>> edit_correct("friend", ["mug", "bug", "but"])
     """
-    # No need to correct if the word is valid
     if word in wordlist:
         return word
     # Since words are in decreasing order of priority,
@@ -23,12 +30,22 @@ def edit_correct(
     return None
 
 
-def singlify(word: str) -> str:
-    """Removes duplicate letters in input word"""
-    return "".join(
-        [
-            letter
-            for i, letter in enumerate(word)
-            if i == 0 or letter != word[i - 1]
-        ]
-    )
+def singlify(word: str, min_rep: int = 2) -> str:
+    """Merge identical letters repeated at least
+    min_rep times in input word.
+
+    Examples
+    --------
+    >>> singlify("abba", min_rep=2)
+    'aba'
+    >>> singlify("abba", min_rep=3)
+    'abba'
+    >>> singlify("nooooooooooooooo")
+    'no'
+    """
+    # Preallocating + setting 10% faster than append()
+    singles = [""] * len(word)
+    for i, letter in enumerate(word):
+        if i == 0 or (letter * min_rep) != word[i - (min_rep - 1) : i + 1]:
+            singles[i] = letter
+    return "".join(singles)
