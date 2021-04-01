@@ -12,7 +12,7 @@ def translate_two_way(
 ) -> Optional[str]:
     """
     Translate input text to target language and back to english.
-    Supports backends "googl" and "textblob".
+    Supports backends "google" and "textblob".
 
     Examples
     --------
