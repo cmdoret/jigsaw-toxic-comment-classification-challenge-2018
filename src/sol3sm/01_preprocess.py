@@ -18,6 +18,7 @@ from tensorflow.keras.preprocessing import text, sequence
 
 import toxic_comments.spellcheck as spck
 from toxic_comments.data_loaders import load_w2v_to_dict
+from toxic_comments import params
 
 eng_stopwords = set(stopwords.words("english"))
 
@@ -25,13 +26,7 @@ eng_stopwords = set(stopwords.words("english"))
 IN_DIR = sys.argv[1]
 OUT_DIR = sys.argv[2]
 
-# Maximum word length on which to perform spellchecking
-spellcheck_len = 0  # Fast: 0, Opti: 20
-# Maximum number of words to consider
-max_features = 293759  # Fast: 100k, Opti: 293759
-# Maximum comment length
-maxlen = 900  # Fast: 50, Opti: 900
-
+params = params["preprocessing"]
 
 # 1. Load and preprocess inputs
 train = pd.read_csv(join(IN_DIR, "train.csv.zip"))
@@ -88,13 +83,17 @@ ss.fit(np.vstack((features, test_features)))
 features = ss.transform(features)
 test_features = ss.transform(test_features)
 # Tokenization, each sentence becomes sequence of ints
-tokenizer = text.Tokenizer(max_features)
+tokenizer = text.Tokenizer(params["max_features"])
 tokenizer.fit_on_texts(list(X_train) + list(X_test))
 X_train_seq = tokenizer.texts_to_sequences(X_train)
 X_test_seq = tokenizer.texts_to_sequences(X_test)
 # Pad sequences with 0s on the left
-X_train_seq = sequence.pad_sequences(X_train_seq, maxlen=maxlen)
-X_test_seq = sequence.pad_sequences(X_test_seq, maxlen=maxlen)
+X_train_seq = sequence.pad_sequences(
+    X_train_seq, maxlen=params["max_comment_len"]
+)
+X_test_seq = sequence.pad_sequences(
+    X_test_seq, maxlen=params["max_comment_len"]
+)
 
 print("Comments tokenized and padded")
 
@@ -124,7 +123,7 @@ print("Embeddings loaded")
 # 5. Combine embeddings #
 ft_dim, tw_dim = 300, 200
 word_index = tokenizer.word_index
-nb_words = min(max_features, len(word_index))
+nb_words = min(params["max_features"], len(word_index))
 embedding_matrix = np.zeros((nb_words, ft_dim + tw_dim + 1))
 
 something = np.zeros((ft_dim + tw_dim + 1,))
@@ -162,16 +161,18 @@ def embed_word(embedding_matrix, i, word):
             embedding_matrix[i, ft_dim:-1] = embedding_vector_tw
 
 
-for word, i in tqdm.tqdm(word_index.items(), total=max_features, unit="words"):
+for word, i in tqdm.tqdm(
+    word_index.items(), total=params["max_features"], unit="words"
+):
 
-    if i >= max_features:
+    if i >= params["max_features"]:
         continue
 
     if embeddings_index_ft.get(word) is not None:
         embed_word(embedding_matrix, i, word)
     else:
         # change to > 20 for better score.
-        if len(word) > spellcheck_len:
+        if len(word) > params["max_spellcheck_len"]:
             embedding_matrix[i] = something
         else:
             word2 = spck.edit_correct(word, words, max_dist=2)

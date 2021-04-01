@@ -1,5 +1,9 @@
 preprocessing:
   n_cv_splits: 5
+  max_spellcheck_len: 20
+  max_features: 293759
+  max_comment_len: 900
+
 
 embedding:
 
