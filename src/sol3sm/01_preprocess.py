@@ -178,7 +178,7 @@ for word, i in tqdm.tqdm(
             word2 = spck.edit_correct(word, words, max_dist=2)
             if word2 is None:
                 word2 = spck.edit_correct(
-                    spck.singlify(word, words, max_dist=2)
+                    spck.singlify(word, min_rep=2), words, max_dist=2
                 )
                 if word2 is None:
                     embedding_matrix[i] = something
