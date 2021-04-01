@@ -1,0 +1,14 @@
+preprocessing:
+  n_cv_splits: 5
+
+embedding:
+
+model:
+  clipvalue: 1.0
+  num_filters: 4.0
+  dropout: 0.5
+
+training:
+  batch_size: 32
+  epochs: 1
+  num_folds: 3
