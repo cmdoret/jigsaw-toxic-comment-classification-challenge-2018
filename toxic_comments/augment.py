@@ -16,7 +16,7 @@ def translate_two_way(
 
     Examples
     --------
-    >>> aug.translate_two_way('table', 'zh')
+    >>> translate_two_way('table', 'zh')
     'table'
     """
     if hasattr(text, "decode"):
@@ -61,7 +61,7 @@ def translate_pavel(
 
     Examples
     --------
-    >>> aug.translate_pavel(['grow old', 'play chess'])
+    >>> translate_pavel(['grow old', 'play chess'])
     {'es': ['get older ', 'play chess '],
      'de': ['to become old ', 'play chess '],
      'fr': ['to get old ', 'play chess ']}
