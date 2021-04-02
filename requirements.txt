@@ -1,0 +1,17 @@
+numpy
+pandas
+dvc[gdrive]
+scikit-learn
+scipy
+matplotlib
+seaborn
+tensorflow
+jellyfish
+nltk
+tqdm
+gensim
+tokenizers
+spacy
+textblob
+joblib
+google-trans-new
