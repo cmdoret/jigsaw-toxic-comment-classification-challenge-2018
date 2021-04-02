@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.metrics import roc_auc_score
 from tensorflow.keras.models import Model
 from tensorflow.keras import optimizers

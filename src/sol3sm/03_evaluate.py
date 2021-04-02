@@ -1,16 +1,36 @@
 """Use the test set to evaluate model"""
+import sys
+from os.path import join
+import numpy as np
+import pandas as pd
+from sklearn.metrics import roc_auc_score
+from toxic_comments.models import get_sol3sm_model, RocAucEvaluation
+from toxic_comments import params, y_test
 
-# TODO: Write code to load model weights, run prediction on test set
-# and simulate submission
 
+BUILD_DIR = sys.argv[1]
+
+load_np = lambda x: np.load(join(BUILD_DIR, f"{x}.npy"))
+X_test_seq = load_np("X_test")
+features_test = load_np("features_test.npy")
+embedding_matrix = load_np("embedding.npy")
+
+model_params = params["model"]
+train_params = params["training"]
+
+model = get_sol3sm_model(
+    X_test_seq, embedding_matrix, features_test, **model_params
+)
 pred_test = model.predict(
-    [X_test, features_test], batch_size=train_params["batch_size"], verbose=1
+    [X_test_seq, features_test],
+    batch_size=train_params["batch_size"],
+    verbose=1,
 )
 test_score = roc_auc_score(y_test, pred_test)
 print(f"ROC AUC for testing set: {test_score}")
 
 
-sample_submission = pd.read_csv(join(OUT_DIR, "sample_submission.csv.zip"))
+sample_submission = pd.read_csv(join(BUILD_DIR, "sample_submission.csv.zip"))
 class_names = [
     "toxic",
     "severe_toxic",
@@ -19,17 +39,7 @@ class_names = [
     "insult",
     "identity_hate",
 ]
-sample_submission[class_names] = predict
+sample_submission[class_names] = pred_test
 sample_submission.to_csv(
-    join(OUT_DIR, "model_9872_baseline_submission.csv"), index=False
+    join(BUILD_DIR, "model_9872_baseline_submission.csv"), index=False
 )
-
-# uncomment for out of fold predictions
-# oof = pd.DataFrame.from_dict({'id': train['id']})
-# for c in class_names:
-#    oof[c] = np.zeros(len(train))
-#
-# oof[class_names] = oof_predict
-# for c in class_names:
-#    oof['prediction_' +c] = oof[c]
-# oof.to_csv('oof-model_9872_baseline_submission.csv', index=False)

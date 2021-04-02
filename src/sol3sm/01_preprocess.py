@@ -18,22 +18,17 @@ from tensorflow.keras.preprocessing import text, sequence
 
 import toxic_comments.spellcheck as spck
 from toxic_comments.data_loaders import load_w2v_to_dict
-from toxic_comments import params
+import toxic_comments as toxic
 
 eng_stopwords = set(stopwords.words("english"))
 
+params = toxic.params["preprocessing"]
 
-IN_DIR = sys.argv[1]
-OUT_DIR = sys.argv[2]
-
-params = params["preprocessing"]
+BUILD_DIR = sys.argv[1]
 
 # 1. Load and preprocess inputs
-train = pd.read_csv(join(IN_DIR, "train.csv.zip"))
-test = pd.read_csv(join(IN_DIR, "test.csv.zip"))
-
-EMBEDDING_FILE_FASTTEXT = join(IN_DIR, "fasttext-crawl-300d-2M.vec")
-EMBEDDING_FILE_TWITTER = join(IN_DIR, "glove.twitter.27B.200d.txt")
+train = toxic.training_set
+test = toxic.X_test
 
 print("Data loaded")
 
@@ -100,12 +95,12 @@ print("Comments tokenized and padded")
 ### 3. Load pretrained embeddings ###
 
 # Get dictionaries to map words to vectors
-embeddings_index_ft = load_w2v_to_dict(EMBEDDING_FILE_FASTTEXT)
-embeddings_index_tw = load_w2v_to_dict(EMBEDDING_FILE_TWITTER)
+embeddings_index_ft = load_w2v_to_dict(toxic.EMBEDDING_FILE_FASTTEXT)
+embeddings_index_tw = load_w2v_to_dict(toxic.EMBEDDING_FILE_TWITTER)
 
 # Also use gensim to get the ordered list of words
 spell_model = gensim.models.KeyedVectors.load_word2vec_format(
-    EMBEDDING_FILE_FASTTEXT
+    toxic.EMBEDDING_FILE_FASTTEXT
 )
 # Words are sorted from most frequent to least frequent
 words = spell_model.index_to_key
@@ -127,12 +122,8 @@ nb_words = min(params["max_features"], len(word_index))
 embedding_matrix = np.zeros((nb_words, ft_dim + tw_dim + 1))
 
 something = np.zeros((ft_dim + tw_dim + 1,))
-something[
-    :ft_dim,
-] = embeddings_index_ft["something"]
-something[
-    ft_dim:-1,
-] = embeddings_index_tw["something"]
+something[:ft_dim,] = embeddings_index_ft["something"]
+something[ft_dim:-1,] = embeddings_index_tw["something"]
 
 
 # Fasttext vector is used by itself if there is no glove vector but
@@ -190,10 +181,10 @@ for word, i in tqdm.tqdm(
 print("Embedding matrix complete")
 
 # Save preprocessed data
-os.makedirs(OUT_DIR, exist_ok=True)
-np.save(join(OUT_DIR, "embedding.npy"), embedding_matrix)
-np.save(join(OUT_DIR, "X_train.npy"), X_train_seq)
-np.save(join(OUT_DIR, "X_test.npy"), X_test_seq)
-np.save(join(OUT_DIR, "features.npy"), features)
-np.save(join(OUT_DIR, "test_features.npy"), test_features)
-np.save(join(OUT_DIR, "y_train.npy"), y_train)
+os.makedirs(BUILD_DIR, exist_ok=True)
+np.save(join(BUILD_DIR, "embedding.npy"), embedding_matrix)
+np.save(join(BUILD_DIR, "X_train.npy"), X_train_seq)
+np.save(join(BUILD_DIR, "X_test.npy"), X_test_seq)
+np.save(join(BUILD_DIR, "features.npy"), features)
+np.save(join(BUILD_DIR, "features_test.npy"), test_features)
+np.save(join(BUILD_DIR, "y_train.npy"), y_train)

@@ -1,12 +1,12 @@
-.PHONY: preprocess train
+.PHONY: preprocess train evaluate
 
-IN="../../input/"
-PRE="../../build/sol3sm/pre/"
-OUT="../../build/sol3sm/out/"
+BUILD_DIR="../../build/sol3sm/build"
 
 preprocess:
-	python ./01_preprocess.py $(IN) $(PRE)
+	python ./01_preprocess.py $(BUILD_DIR)
 
 train:
-	python ./01_model.py $(PRE) $(OUT)
+	python ./02_train.py $(BUILD_DIR)
 
+evaluate:
+	python ./03_evaluate.py $(BUILD_DIR)
