@@ -10,7 +10,8 @@ from os.path import join
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, KFold
-from toxic_comments.models import get_sol3sm_model, RocAucEvaluation
+from toxic_comments.models import get_sol3sm_model
+from toxic_comments.callbacks import RocAucEvaluation
 from toxic_comments import params
 
 

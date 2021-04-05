@@ -41,7 +41,6 @@ def translate_two_way(
     # In case no valid translation exists, return None
     except NotTranslated:
         return None
-
     # In case multiple results are returned, take the first one
     if isinstance(result, list):
         result = result[0]
