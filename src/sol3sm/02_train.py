@@ -28,6 +28,8 @@ embedding_matrix = load_np("embedding")
 features = load_np("features")
 X_train_seq = load_np("X_train")
 y_train = load_np("y_train")
+X_test_seq = load_np("X_test")
+features_test = load_np("features_test")
 
 model = get_sol3sm_model(
     X_train_seq, embedding_matrix, features, **model_params
@@ -67,5 +69,22 @@ for train_index, test_index in kf.split(X_train_seq):
     )
 
     model.load_weights(join(BUILD_DIR, "best_weights.h5"))
+
+
+# Additional fitting with test set pseudolabels
+y_test_pseudo = model.predict(
+    [X_test_seq, features_test],
+    batch_size=train_params["batch_size"],
+    verbose=1,
+)
+model.fit(
+    [X_test_seq, features_test],
+    y_test_pseudo,
+    batch_size=train_params["batch_size"],
+    epochs=train_params["epochs"],
+    verbose=1,
+    callbacks=[ra_val],
+)
+model.save_weights(join(BUILD_DIR, "best_weights.h5"))
 
 print("Done")
