@@ -12,8 +12,8 @@ BUILD_DIR = sys.argv[1]
 
 load_np = lambda x: np.load(join(BUILD_DIR, f"{x}.npy"))
 X_test_seq = load_np("X_test")
-features_test = load_np("features_test.npy")
-embedding_matrix = load_np("embedding.npy")
+features_test = load_np("features_test")
+embedding_matrix = load_np("embedding")
 
 model_params = params["model"]
 train_params = params["training"]
