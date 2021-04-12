@@ -1,9 +1,9 @@
+from functools import partial
+import multiprocessing as mp
 from typing import Iterable, Optional
 import numpy as np
-from numba import types
-import numba
 
-@numba.jit(nopython=True)
+
 def levenshtein_distance(s1: str, s2: str) -> int:
     """
     Compute the Levenshtein distance between two strings.
@@ -38,7 +38,7 @@ def levenshtein_distance(s1: str, s2: str) -> int:
 
     return cur[-1]
 
-@numba.jit(nopython=True)
+
 def edit_correct(
     word: str, wordlist: Iterable[str], max_dist: str = 2
 ) -> Optional[str]:
@@ -62,11 +62,11 @@ def edit_correct(
     # we can stop as soon as we find a best (d=1) match
     # distances = [0] * len(wordlist)
     distances = np.zeros(len(wordlist), dtype=np.int64)
-    for i, ref in enumerate(wordlist):
-        lev = levenshtein_distance(word, ref)
-        if lev == 1:
-            return ref
-        distances[i] = lev
+    with mp.Pool(mp.cpu_count() - 1) as p:
+        for i, lev in enumerate(p.imap(partial(levenshtein_distance, s2=word), wordlist)):
+            if lev == 1:
+                return wordlist[i]
+            distances[i] = lev
 
     # Review distances and pick the closest available,
     # of best priority (first index)
