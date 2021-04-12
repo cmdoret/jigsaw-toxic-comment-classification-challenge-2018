@@ -1,12 +1,53 @@
 import os
+import time
 import pandas as pd
 from typing import Optional, Iterable, List, Dict
 from joblib import Parallel, delayed
 from textblob import TextBlob
 from textblob.translate import NotTranslated
 from google_trans_new import google_translator
+from google_trans_new.google_trans_new import google_new_transError
+import urllib
+
+def safe_request(fun):
+    """
+    Wraps function sending http requests to allow safe errors and retry.
+    
+    Parameters
+    ----------
+    fun : python function
+        The python function that queries a server
+    
+    Returns
+    -------
+    wrapped_f : python function
+        A wrapped version of the input function which will call itself recursively
+        every 5 seconds if the server is overloaded.
+    """
+
+    def wrapped_f(*args, **kwargs):
+
+        try:
+            a = fun(*args, **kwargs)
+            return a
+        # google-new-trans defines their own exception over urllib...
+        except (urllib.error.HTTPError, google_new_transError) as e:
+            if isinstance(e, google_new_transError):
+                code = e.rsp.status_code
+            else:
+                code = e.code
+            if code in (429, 502):
+                time.sleep(10)
+                print("Sending too many requests, sleeping 10sec and retrying...")
+                wrapped_f(*args, **kwargs)
+            else:
+                breakpoint()
+                raise e
+                
+    return wrapped_f
 
 
+@safe_request
 def translate_two_way(
     text: str, language: str, backend: str = "google"
 ) -> Optional[str]:
@@ -48,6 +89,8 @@ def translate_two_way(
     return result.strip()
 
 
+
+
 def translate_pavel(
     sentences: Iterable[str],
     languages: Iterable[str]=["es", "de", "fr"],
@@ -71,12 +114,12 @@ def translate_pavel(
     # translation server.
     parallel = Parallel(threads, backend="threading", verbose=0)
     for lang in languages:
+        translated_data = []
         if verbose:
             print('Translate comments using "{0}" language'.format(lang))
-        translated_data = parallel(
-            delayed(translate_two_way)(text, lang, backend)
-            for text in sentences
-        )
+        for text in sentences:
+            translated_data.append(translate_two_way(text, lang, backend))
+            time.sleep(0.5)
         results[lang] = translated_data
 
     return results
