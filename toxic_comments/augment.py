@@ -45,14 +45,15 @@ def translate_two_way(
     if isinstance(result, list):
         result = result[0]
 
-    return result
+    return result.strip()
 
 
 def translate_pavel(
     sentences: Iterable[str],
-    languages=["es", "de", "fr"],
-    backend="google",
-    threads=1,
+    languages: Iterable[str]=["es", "de", "fr"],
+    backend: str="google",
+    threads: int=1,
+    verbose: bool=False
 ) -> Dict[str, List[str]]:
     """Translate a list of sentences to another language and  back to
     english for data augmentation. Returns a dictionary mapping language
@@ -61,9 +62,7 @@ def translate_pavel(
     Examples
     --------
     >>> translate_pavel(['grow old', 'play chess'])
-    {'es': ['get older ', 'play chess '],
-     'de': ['to become old ', 'play chess '],
-     'fr': ['to get old ', 'play chess ']}
+    {'es': ['get older', 'play chess'], 'de': ['to become old', 'play chess'], 'fr': ['to get old', 'play chess']}
     """
     results = {}
 
@@ -72,7 +71,8 @@ def translate_pavel(
     # translation server.
     parallel = Parallel(threads, backend="threading", verbose=0)
     for lang in languages:
-        print('Translate comments using "{0}" language'.format(lang))
+        if verbose:
+            print('Translate comments using "{0}" language'.format(lang))
         translated_data = parallel(
             delayed(translate_two_way)(text, lang, backend)
             for text in sentences
