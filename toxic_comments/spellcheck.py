@@ -1,42 +1,6 @@
-from functools import partial
-import multiprocessing as mp
 from typing import Iterable, Optional
 import numpy as np
-
-
-def levenshtein_distance(s1: str, s2: str) -> int:
-    """
-    Compute the Levenshtein distance between two strings.
-    Code adapted from the jellyfish (0.8.2) library:
-    https://github.com/jamesturk/jellyfish
-
-    Examples
-    --------
-    >>> levenshtein_distance('ABC', 'ABD')
-    1
-    """
-
-    if s1 == s2:
-        return 0
-    rows = len(s1) + 1
-    cols = len(s2) + 1
-
-    if not s1:
-        return cols - 1
-    if not s2:
-        return rows - 1
-
-    prev = None
-    cur = list(range(cols))
-    for r in range(1, rows):
-        prev, cur = cur, [r] + [0] * (cols - 1)
-        for c in range(1, cols):
-            deletion = prev[c] + 1
-            insertion = cur[c - 1] + 1
-            edit = prev[c - 1] + (0 if s1[r - 1] == s2[c - 1] else 1)
-            cur[c] = min(edit, deletion, insertion)
-
-    return cur[-1]
+from rapidfuzz import process, fuzz, string_metric
 
 
 def edit_correct(
@@ -58,25 +22,15 @@ def edit_correct(
     """
     if word in wordlist:
         return word
-    # Since words are in decreasing order of priority,
-    # we can stop as soon as we find a best (d=1) match
-    # distances = [0] * len(wordlist)
-    distances = np.zeros(len(wordlist), dtype=np.int64)
-    with mp.Pool(mp.cpu_count() - 1) as p:
-        for i, lev in enumerate(p.imap(partial(levenshtein_distance, s2=word), wordlist)):
-            if lev == 1:
-                return wordlist[i]
-            distances[i] = lev
-
-    # Review distances and pick the closest available,
-    # of best priority (first index)
-    for dist in range(2, max_dist+1):
-        dist_idx = np.flatnonzero(distances == dist)
-        if len(dist_idx) > 0:
-            return wordlist[dist_idx[0]]
-
-    # No good match found, we return nothing
-    return None
+    # extractOne returns the most similar word, in case of
+    # ties, the first word is returned. Since words are in
+    # decreasing order of priority, this will automatically return
+    # the most relevant word
+    res = process.extractOne(word, wordlist, scorer=string_metric.levenshtein, score_cutoff=max_dist)
+    # Extract string from the output (if a match was found)
+    if res is not None:
+        res = res[0]
+    return res
 
 
 def singlify(word: str, min_rep: int = 2) -> str:

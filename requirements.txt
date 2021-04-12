@@ -1,13 +1,12 @@
 dvc[gdrive]
 gensim
 google-trans-new
-jellyfish
 joblib
 matplotlib
-multiprocessing
 nltk
 numpy
 pandas
+rapidfuzz
 scikit-learn
 scipy
 seaborn
