@@ -95,7 +95,7 @@ def translate_pavel(
     sentences: Iterable[str],
     languages: Iterable[str]=["es", "de", "fr"],
     backend: str="google",
-    threads: int=1,
+    sleep_time: float=0.25,
     verbose: bool=False
 ) -> Dict[str, List[str]]:
     """Translate a list of sentences to another language and  back to
@@ -116,7 +116,7 @@ def translate_pavel(
         for text in tqdm.tqdm(sentences, total=len(sentences), unit=f'texts[{lang}]'):
             translated_data.append(translate_two_way(text, lang, backend))
             # Don't spam the server to avoid IP ban
-            time.sleep(0.5)
+            time.sleep(sleep_time)
         results[lang] = translated_data
 
     return results
