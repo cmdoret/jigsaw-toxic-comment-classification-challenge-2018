@@ -1,8 +1,8 @@
 import os
 import time
+import tqdm
 import pandas as pd
 from typing import Optional, Iterable, List, Dict
-from joblib import Parallel, delayed
 from textblob import TextBlob
 from textblob.translate import NotTranslated
 from google_trans_new import google_translator
@@ -109,16 +109,13 @@ def translate_pavel(
     """
     results = {}
 
-    # For each languages, words are processed with multithreading
-    # this helps because most of the time is spent waiting on the
-    # translation server.
-    parallel = Parallel(threads, backend="threading", verbose=0)
     for lang in languages:
         translated_data = []
         if verbose:
             print('Translate comments using "{0}" language'.format(lang))
-        for text in sentences:
+        for text in tqdm.tqdm(sentences, total=len(sentences), unit=f'texts[{lang}]'):
             translated_data.append(translate_two_way(text, lang, backend))
+            # Don't spam the server to avoid IP ban
             time.sleep(0.5)
         results[lang] = translated_data
 

@@ -1,6 +1,7 @@
 # This is a reimplementation of Alexander Burmistrov's solution,
 # which finished in 3rd place in the Kaggle Toxic comment
 # Classification Challenge. The code is largely based on Larry Freeman's
+# A few improvements were made to it (rework spellchecking, add data augmentation, ...)
 # implementation of this solution.
 # cmdoret, 202010309
 
@@ -26,9 +27,10 @@ params = toxic.params["preprocessing"]
 
 BUILD_DIR = sys.argv[1]
 
-# 1. Load and preprocess inputs
-train = toxic.training_set
-test = toxic.X_test
+# 1. Load and preprocess augmented data
+load_np = lambda x: np.load(join(BUILD_DIR, f"{x}.npy"))
+train = load_np("train_augmented")
+test = load_np("test_augmented")
 
 print("Data loaded")
 
